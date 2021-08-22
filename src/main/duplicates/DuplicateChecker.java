@@ -54,7 +54,7 @@ public class DuplicateChecker {
         invalidParticipants.addAll(warning_surname_birthdate.stream().map(Participant::getId).collect(Collectors.toSet()));
 
         List<Participant> uniqueParticipants = new ArrayList<>();
-        if (invalidParticipants.size() >= 0) {
+        if (invalidParticipants.size() > 0) {
             uniqueParticipants = participants.stream().filter(f -> !invalidParticipants.contains(f.getId())).collect(Collectors.toList());
         }
         if (uniqueParticipants.size() > 0) {
