@@ -1,5 +1,7 @@
 package main.fibonacci;
 
+import java.math.BigDecimal;
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -7,55 +9,44 @@ import java.util.stream.IntStream;
 
 public class FibonacciCalculator {
 
-    private static final Map<Integer, Integer> initialValues = Map.of(
-            0, 0,
-            1, 1
-    );
+    private static final BigDecimal ZERO = BigDecimal.ZERO;
+    private static final BigDecimal ONE = BigDecimal.ONE;
+    private static final BigDecimal TWO = BigDecimal.valueOf(2);
 
     public static void main(String[] args) {
-        int maxValue = 100;
-//        long start = System.currentTimeMillis();
-//        IntStream.range(0, maxValue)
-//                .forEach(i -> System.out.printf("Calculate F%d: %d%n", i, calculate(i)));
-//        System.out.println("First elapsed time:" + (System.currentTimeMillis()-start) );
-//
-//        start = System.currentTimeMillis();
-//        IntStream.range(0, maxValue)
-//                .forEach(i -> System.out.printf("CalculateFaster F%d: %d%n", i, calculateFaster(i)));
-//        System.out.println("Second elapsed time:" + (System.currentTimeMillis()-start) );
+        int lastValue = 100;
+
+        Map<BigDecimal, BigDecimal> previousValuesMap = new HashMap<>();
+        previousValuesMap.put(ZERO, ZERO);
+        previousValuesMap.put(ONE, ONE);
+        previousValuesMap.put(TWO, ONE);
 
         long start = System.currentTimeMillis();
-        Map<Long, Long> calculatedValues = new HashMap<>();
-        calculatedValues.put(0L,0L);
-        calculatedValues.put(1L,1L);
-        IntStream.range(0, maxValue)
-                .forEach(i -> System.out.printf("calculateWithMemory F%d: %d%n", i, calculateWithMemory( (long)i, calculatedValues)));
-        System.out.println("calculateWithMemory elapsed time:" + (System.currentTimeMillis()-start) );
 
+        IntStream.range(0, lastValue)
+                .mapToObj(BigDecimal::valueOf)
+                .map(value -> FibonacciCalculator.buildData(value, previousValuesMap))
+                .forEach(FibonacciCalculator::printValue);
 
+        System.out.println("Elapsed time:" + (System.currentTimeMillis() - start));
     }
 
-//    public static Long calculate(final Long value) {
-//        if (value<2){
-//            return value;
-//        }
-//        return calculate(value-1)+ calculate(value-2);
-//    }
-//
-//    public static Long calculateFaster(final Long value) {
-//        return Optional
-//                .ofNullable(initialValues.get(value))
-//                .orElseGet(() -> calculateFaster(value - 1) + calculate(value - 2));
-//
-//    }
+    private static AbstractMap.SimpleEntry<BigDecimal, BigDecimal> buildData(BigDecimal value, Map<BigDecimal, BigDecimal> previousValuesMap) {
+        return new AbstractMap.SimpleEntry<>(value, fibonacciOfValue(value, previousValuesMap));
+    }
 
-    public static Long calculateWithMemory(final Long value, Map<Long, Long> calculated){
-        return Optional.ofNullable(calculated.get(value))
-                .orElseGet(()->{
-                    Long newValue = calculateWithMemory(value - 1, calculated) + calculateWithMemory(value - 2, calculated);
-                    calculated.put(value, newValue);
+    private static void printValue(AbstractMap.SimpleEntry<BigDecimal, BigDecimal> entry) {
+        System.out.printf("Fibonacci[%s] = %s%n", entry.getKey().toPlainString(), entry.getValue().toPlainString());
+    }
+
+    public static BigDecimal fibonacciOfValue(final BigDecimal value, Map<BigDecimal, BigDecimal> previousValuesMap) {
+        return Optional.ofNullable(previousValuesMap.get(value))
+                .orElseGet(() -> {
+                    BigDecimal newValue = fibonacciOfValue(value.subtract(ONE), previousValuesMap)
+                            .add(fibonacciOfValue(value.subtract(TWO), previousValuesMap));
+                    previousValuesMap.put(value, newValue);
                     return newValue;
                 });
-
     }
+
 }
